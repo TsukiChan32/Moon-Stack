@@ -1,6 +1,6 @@
 {
   "name": "create-moon-stack",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Create a Moon Stack web app",
   "type": "module",
   "bin": {
