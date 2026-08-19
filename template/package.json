@@ -3,16 +3,20 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "oxlint",
-    "preview": "vite preview",
-    "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio",
-    "server": "tsx watch server/index.ts"
-  },
+ "scripts": {
+  "dev": "concurrently \"npm:dev:frontend\" \"npm:dev:server\"",
+  "dev:frontend": "vite",
+  "dev:server": "tsx watch server/index.ts",
+  "server": "tsx watch server/index.ts",
+
+  "build": "tsc -b && vite build",
+  "lint": "oxlint",
+  "preview": "vite preview",
+
+  "db:generate": "prisma generate",
+  "db:migrate": "prisma migrate dev",
+  "db:studio": "prisma studio"
+},
   "dependencies": {
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
@@ -37,6 +41,7 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.4",
+    "concurrently": "^10.0.5",
     "oxlint": "^1.75.0",
     "prisma": "^7.9.1",
     "tsx": "^4.23.12",
@@ -44,8 +49,8 @@
     "vite": "^8.2.0"
   },
   "allowScripts": {
-  "@prisma/engines@7.9.1": true,
-  "esbuild@0.28.2": true,
-  "prisma@7.9.1": true
-}
+    "@prisma/engines@7.9.1": true,
+    "esbuild@0.28.2": true,
+    "prisma@7.9.1": true
+  }
 }

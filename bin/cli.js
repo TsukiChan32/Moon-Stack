@@ -3,18 +3,67 @@
 import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
+import spawn from "cross-spawn"
+import * as p from "@clack/prompts"
 
-// Pobieramy nazwę projektu z komendy:
-// create-moon-stack my-app
-const projectName = process.argv[2]
+function runCommand(command, args, cwd) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, {
+      cwd,
+    })
 
-// Jeśli użytkownik nie podał nazwy projektu
-if (!projectName) {
-  console.error("🌙 Please provide a project name.")
-  console.error("")
-  console.error("Example:")
-  console.error("  create-moon-stack my-app")
-  process.exit(1)
+    let output = ""
+
+    child.stdout.on("data", (data) => {
+      output += data.toString()
+    })
+
+    child.stderr.on("data", (data) => {
+      output += data.toString()
+    })
+
+    child.on("close", (code) => {
+      if (code === 0) {
+        resolve()
+      } else {
+        reject(new Error(output))
+      }
+    })
+
+    child.on("error", reject)
+  })
+}
+
+p.intro("🌙 Create Moon Stack")
+
+const projectName = await p.text({
+  message: "Project name?",
+  placeholder: "my-app",
+})
+
+if (p.isCancel(projectName)) {
+  p.cancel("Moon Stack creation cancelled.")
+  process.exit(0)
+}
+
+const installDependencies = await p.confirm({
+  message: "Install dependencies?",
+  initialValue: true,
+})
+
+if (p.isCancel(installDependencies)) {
+  p.cancel("Moon Stack creation cancelled.")
+  process.exit(0)
+}
+
+const initializeGit = await p.confirm({
+  message: "Initialize Git repository?",
+  initialValue: true,
+})
+
+if (p.isCancel(initializeGit)) {
+  p.cancel("Moon Stack creation cancelled.")
+  process.exit(0)
 }
 
 // Ustalamy, gdzie znajduje się nasze CLI
@@ -75,6 +124,42 @@ if (fs.existsSync(envExamplePath)) {
   fs.copyFileSync(envExamplePath, envPath)
 }
 
+if (installDependencies) {
+  const spinner = p.spinner()
+
+  try {
+    spinner.start("Installing dependencies")
+
+    await runCommand("npm", ["install"], targetDir)
+
+    spinner.stop("Dependencies installed")
+
+    spinner.start("Generating Prisma Client")
+
+    await runCommand("npm", ["run", "db:generate"], targetDir)
+
+    spinner.stop("Prisma Client generated")
+  } catch (error) {
+    spinner.stop("Installation failed")
+
+    console.error("")
+    console.error(error.message)
+
+    process.exit(1)
+  }
+}
+if (initializeGit) {
+  const spinner = p.spinner()
+
+  spinner.start("Initializing Git repository")
+
+  await runCommand("git", ["init"], targetDir)
+
+  spinner.stop("Git repository initialized")
+}
+
+
+
 // -------------------------------------
 // Done!
 // -------------------------------------
@@ -83,17 +168,18 @@ console.log(`✨ Moon Stack created successfully!`)
 console.log("")
 console.log("Next steps:")
 console.log("")
+
 console.log(`  cd ${projectName}`)
-console.log("  npm install")
-console.log("  npm run db:generate")
+
+if (!installDependencies) {
+  console.log("  npm install")
+  console.log("  npm run db:generate")
+}
+
 console.log("")
-console.log("Start frontend:")
+console.log("Start development:")
 console.log("")
 console.log("  npm run dev")
-console.log("")
-console.log("Start backend:")
-console.log("")
-console.log("  npm run server")
 console.log("")
 console.log("Database:")
 console.log("")
