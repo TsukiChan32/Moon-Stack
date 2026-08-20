@@ -90,6 +90,12 @@ console.log("")
 fs.cpSync(templateDir, targetDir, {
   recursive: true,
 })
+const gitignoreTemplatePath = path.join(targetDir, "gitignore")
+const gitignorePath = path.join(targetDir, ".gitignore")
+
+if (fs.existsSync(gitignoreTemplatePath)) {
+  fs.renameSync(gitignoreTemplatePath, gitignorePath)
+}
 
 // -------------------------------------
 // package.json
